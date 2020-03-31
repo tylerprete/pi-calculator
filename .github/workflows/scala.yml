@@ -19,3 +19,8 @@ jobs:
         java-version: 1.8
     - name: Build JS
       run: ./build.sh
+    - name: Upload public folder
+      uses: actions/upload-artifact@v1
+      with:
+        name: public
+        path: public
