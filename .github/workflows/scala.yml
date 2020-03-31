@@ -20,6 +20,7 @@ jobs:
     - name: Build JS
       run: ./build.sh
     - name: Upload public folder
+      if: success()
       uses: actions/upload-artifact@v1
       with:
         name: public
