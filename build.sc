@@ -2,7 +2,7 @@
 import mill._, scalalib._, scalajslib._
 
 object pi extends ScalaJSModule {
-  def scalaVersion = "2.13.5"
+  def scalaVersion = "2.13.6"
   def scalaJSVersion = "1.5.1"
 
   def ivyDeps = Agg(
