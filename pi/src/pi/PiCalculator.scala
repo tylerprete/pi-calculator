@@ -2,7 +2,6 @@ package pi
 
 import org.scalajs.dom
 import org.scalajs.dom.ImageData
-import org.scalajs.dom.ext.{Color, PimpedNodeList}
 import org.scalajs.dom.html.{Button, Canvas, Form, Input}
 
 import scala.scalajs.js.annotation.{JSExport, JSExportAll, JSExportTopLevel}
