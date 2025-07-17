@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
-./millw pi.fullOpt
-cp out/pi/fullOpt.dest/out.js public/js/app.js
+./millw pi.fullLinkJS
+cp out/pi/fullLinkJS.dest/main.js public/js/app.js
