@@ -1,4 +1,4 @@
-// build.sc
+package build
 import mill._, scalalib._, scalajslib._
 
 object pi extends ScalaJSModule {
