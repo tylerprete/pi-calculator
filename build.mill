@@ -2,10 +2,10 @@ package build
 import mill._, scalalib._, scalajslib._
 
 object pi extends ScalaJSModule {
-  def scalaVersion = "3.7.1"
-  def scalaJSVersion = "1.19.0"
+  def scalaVersion = "3.7.4"
+  def scalaJSVersion = "1.20.1"
 
   def mvnDeps = Seq(
-    mvn"org.scala-js::scalajs-dom::2.8.0"
+    mvn"org.scala-js::scalajs-dom::2.8.1"
   )
 }
