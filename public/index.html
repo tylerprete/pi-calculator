@@ -34,7 +34,14 @@
         The blue line tracks your estimate; the dashed amber line marks π.
         More samples usually bring the estimate closer, but it still fluctuates.
         Each equal step along the horizontal axis represents ten times as many samples.
+        Recent detail shows the latest tenfold range of sample counts and automatically
+        zooms the vertical axis. Full history keeps the original 0–4 scale.
       </p>
+      <label for="chart-view">View:</label>
+      <select id="chart-view">
+        <option value="recent">Recent detail</option>
+        <option value="full">Full history</option>
+      </select>
       <canvas id="convergence-chart" width="640" height="280" role="img"
         aria-describedby="convergence-description">
         Pi estimate over the number of samples, compared with π = 3.14159…

@@ -9,6 +9,12 @@ final class ConvergenceChart(canvas: Canvas) {
   private val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   private var history = Vector.empty[PiState]
   private var nextCheckpoint = 1
+  private var recentDetail = true
+
+  def setRecentDetail(enabled: Boolean, state: PiState): Unit = {
+    recentDetail = enabled
+    render(state)
+  }
 
   def record(state: PiState): Unit = {
     if (state.totalPoints >= nextCheckpoint) {
@@ -27,32 +33,56 @@ final class ConvergenceChart(canvas: Canvas) {
     // Match the displayed width so chart labels stay readable on small screens.
     val displayedWidth = canvas.clientWidth
     if (displayedWidth > 0 && canvas.width != displayedWidth) canvas.width = displayedWidth
-    val left = 44.0
+    val left = 64.0
     val right = canvas.width - 100.0
     val top = 20.0
     val bottom = canvas.height - 52.0
     val maxLog = math.max(1.0, math.log10(math.max(1, state.totalPoints).toDouble))
-    def x(count: Int): Double = left + math.log10(count.toDouble) / maxLog * (right - left)
-    def y(estimate: Double): Double = bottom - estimate / 4.0 * (bottom - top)
+    val minLog = if (recentDetail) math.max(0.0, maxLog - 1.0) else 0.0
+    val samples = if (state.totalPoints == 0) Vector.empty else {
+      if (history.lastOption.contains(state)) history else history :+ state
+    }
+    val points = samples.filter(point => math.log10(point.totalPoints.toDouble) >= minLog)
+    val values = points.map(_.pi) :+ math.Pi
+    val padding = math.max(0.002, (values.max - values.min) * 0.2)
+    val minY = if (recentDetail && points.nonEmpty) math.max(0.0, values.min - padding) else 0.0
+    val maxY = if (recentDetail && points.nonEmpty) math.min(4.0, values.max + padding) else 4.0
+    def x(count: Int): Double = left + (math.log10(count.toDouble) - minLog) / (maxLog - minLog) * (right - left)
+    def y(estimate: Double): Double = bottom - (estimate - minY) / (maxY - minY) * (bottom - top)
+    def countLabel(count: Double): String = {
+      if (count >= 1000000) f"${count / 1000000}%.1fM"
+      else if (count >= 1000) f"${count / 1000}%.1fk"
+      else math.round(count).toString
+    }
 
     ctx.fillStyle = "#ffffff"
     ctx.fillRect(0, 0, canvas.width, canvas.height)
     ctx.font = "12px sans-serif"
     ctx.lineWidth = 1
     ctx.textAlign = "right"
-    for (value <- 0 to 4) {
+    for (tick <- 0 to 4) {
+      val value = minY + tick * (maxY - minY) / 4
       ctx.strokeStyle = "#e2e8f0"
       ctx.beginPath()
       ctx.moveTo(left, y(value))
       ctx.lineTo(right, y(value))
       ctx.stroke()
       ctx.fillStyle = "#475569"
-      ctx.fillText(value.toString, left - 10, y(value) + 4)
+      val label = if (maxY - minY < 1) f"$value%.4f" else f"$value%.1f"
+      ctx.fillText(label, left - 10, y(value) + 4)
     }
     ctx.textAlign = "center"
-    for (power <- 0 to math.floor(maxLog).toInt) {
-      val count = math.pow(10, power).toInt
-      ctx.fillText(count.toString, x(count), bottom + 20)
+    if (recentDetail) {
+      for (tick <- 0 to 4) {
+        val fraction = tick / 4.0
+        val count = math.pow(10, minLog + fraction * (maxLog - minLog))
+        ctx.fillText(countLabel(count), left + fraction * (right - left), bottom + 20)
+      }
+    } else {
+      for (power <- 0 to math.floor(maxLog).toInt) {
+        val count = math.pow(10, power).toInt
+        ctx.fillText(countLabel(count), x(count), bottom + 20)
+      }
     }
     ctx.fillText("Number of samples (log scale)", (left + right) / 2, canvas.height - 10)
 
@@ -68,7 +98,6 @@ final class ConvergenceChart(canvas: Canvas) {
     ctx.fillText("π = 3.14159…", right + 8, y(math.Pi) + 4)
 
     if (state.totalPoints > 0) {
-      val points = if (history.lastOption.contains(state)) history else history :+ state
       ctx.strokeStyle = "#2563eb"
       ctx.lineWidth = 2
       ctx.beginPath()
@@ -83,12 +112,14 @@ final class ConvergenceChart(canvas: Canvas) {
       ctx.fill()
     } else {
       ctx.fillStyle = "#475569"
-      ctx.fillText("Sample points to start the chart", left + 18, top + 28)
+      ctx.fillText("No samples yet", left + 18, top + 28)
     }
-    canvas.setAttribute("aria-label", if (state.totalPoints == 0) {
+    val description = if (state.totalPoints == 0) {
       "Convergence chart. No samples yet. Reference pi is 3.14159."
     } else {
       s"Convergence chart after ${state.totalPoints} samples. Estimate ${state.pi}. Reference pi is 3.14159."
-    })
+    }
+    val view = if (recentDetail) "Recent detail" else "Full history"
+    canvas.setAttribute("aria-label", s"$description $view. Vertical axis from $minY to $maxY.")
   }
 }

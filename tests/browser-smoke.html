@@ -41,6 +41,22 @@
           const estimate = Number(doc.getElementById("pi").textContent);
           check(Math.abs(estimate - Math.PI) < 0.1, "Estimate should converge toward pi");
           checkChart();
+          const detailLabel = chart.getAttribute("aria-label");
+          const range = detailLabel.match(/Vertical axis from ([\d.]+) to ([\d.]+)\./);
+          check(range && Number(range[2]) - Number(range[1]) < 1, "Recent detail should zoom into late fluctuations");
+          const detailPixels = chartPixels();
+          const chartView = doc.getElementById("chart-view");
+          const setChartView = value => {
+            chartView.value = value;
+            chartView.dispatchEvent(new this.contentWindow.Event("change"));
+          };
+          const beforeViewChange = total();
+          setChartView("full");
+          check(chart.getAttribute("aria-label").includes("Full history. Vertical axis from 0 to 4."), "Full history should restore the 0–4 scale");
+          check(chartPixels().some((value, index) => value !== detailPixels[index]), "Changing view should redraw the chart");
+          setChartView("recent");
+          check(chartPixels().every((value, index) => value === detailPixels[index]), "Switching back should preserve chart history");
+          check(total() === beforeViewChange, "Changing chart view should preserve sample counts");
           check(doc.getElementById("total-points2").textContent === String(total()), "Counts should stay synchronized");
           check(doc.getElementById("in-circle").textContent === doc.getElementById("in-circle2").textContent, "Inside counts should stay synchronized");
           check(pixels().some((value, index) => value !== initialPixels[index]), "Points should appear on the canvas");

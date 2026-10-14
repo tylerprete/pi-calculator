@@ -2,7 +2,7 @@ package pi
 
 import org.scalajs.dom
 import org.scalajs.dom.ImageData
-import org.scalajs.dom.html.{Button, Canvas, Form, Input}
+import org.scalajs.dom.html.{Button, Canvas, Form, Input, Select}
 
 import scala.compiletime.uninitialized
 import scala.scalajs.js
@@ -45,6 +45,8 @@ object PiCalculator {
       dom.document.getElementById("convergence-chart").asInstanceOf[Canvas]
     )
     convergenceChart.reset()
+    val chartView = dom.document.getElementById("chart-view").asInstanceOf[Select]
+    chartView.onchange = (_: dom.Event) => convergenceChart.setRecentDetail(chartView.value == "recent", piState)
     dom.window.addEventListener("resize", (_: dom.Event) => convergenceChart.render(piState))
   }
 
