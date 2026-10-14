@@ -16,6 +16,9 @@ incrementing, stopping, and resetting. On Linux it uses `google-chrome`; on
 macOS it uses the standard Google Chrome application path. Set `CHROME_BIN`
 to use a different Chrome or Chromium executable.
 
+Run `./millw --no-server pi.test` for deterministic pixel-coordinate tests
+using Node.js; these check that edge samples stay within the canvas.
+
 ## CI and deployment
 
 `Scala CI` runs for pushes to `master` and pull requests targeting `master`.

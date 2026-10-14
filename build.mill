@@ -8,4 +8,8 @@ object pi extends ScalaJSModule {
   def mvnDeps = Seq(
     mvn"org.scala-js::scalajs-dom::2.8.1"
   )
+
+  object test extends ScalaJSTests, TestModule.Utest {
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest::0.9.1")
+  }
 }

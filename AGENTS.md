@@ -89,8 +89,9 @@ CHROME_BIN=/path/to/chromium bash ./test.sh
 ```
 
 `test.sh` does not build the app. Testing an old `public/js/app.js` can give a
-misleading pass. There is currently no Scala unit-test module; the untracked
-`package.json` observed during setup has a placeholder failing `npm test`
+misleading pass. The `pi.test` Scala.js uTest module runs deterministic
+pixel-coordinate checks with Node.js via `./millw --no-server pi.test`. The
+untracked `package.json` observed during setup has a placeholder failing `npm test`
 command and is not part of the build workflow.
 
 For visual changes, also inspect the page in a browser. Check the canvas,
