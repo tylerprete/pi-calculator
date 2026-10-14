@@ -5,7 +5,7 @@ See it in action: https://tylerprete.github.io/pi-calculator/
 
 If you'd like to check out the project and build locally:
 1. Check out repository
-2. Install JDK 21 or newer, then run `./build.sh` from the project root. The Mill wrapper downloads the pinned toolchain.
+2. Install JDK 25 LTS, then run `./build.sh` from the project root. Mill can download the pinned Java 25 toolchain.
 3. open index.html from the public/ directory in a web browser.
 
 The build uses Scala 3.10.0, Scala.js 1.22.0, and Mill 1.3.0.
@@ -22,7 +22,7 @@ using Node.js; these check that edge samples stay within the canvas.
 ## CI and deployment
 
 `Scala CI` runs for pushes to `master` and pull requests targeting `master`.
-It installs Liberica JDK 21, builds the optimized JavaScript bundle, runs the
+It installs Liberica JDK 25 LTS, builds the optimized JavaScript bundle, runs the
 browser smoke test and deployment regression tests, and uploads `public/`.
 The build job uses a read-only token.
 

@@ -1,6 +1,6 @@
 //| extends: mill.script.ScalaModule.Raw
 //| scalaVersion: 3.10.0
-//| jvmVersion: 21
+//| jvmVersion: 25
 //| mainClass: pages.Pages
 //| mvnDeps:
 //| - com.lihaoyi::os-lib:0.11.8

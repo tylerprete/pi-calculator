@@ -2,6 +2,7 @@ package build
 import mill._, scalalib._, scalajslib._
 
 object pi extends ScalaJSModule {
+  def jvmVersion = "25"
   def scalaVersion = "3.10.0"
   def scalaJSVersion = "1.22.0"
 
