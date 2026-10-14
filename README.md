@@ -3,6 +3,13 @@ A simple demonstration of calculating pi through random (x,y) point selection in
 
 See it in action: https://tylerprete.github.io/pi-calculator/
 
+The convergence chart tracks the estimate against π as samples accumulate.
+Its horizontal axis uses a logarithmic scale. The default Recent detail view
+shows the latest tenfold range of sample counts and automatically scales the
+vertical axis so small fluctuations stay visible. Switch to Full history to
+see the entire run on a fixed 0–4 scale. Reset clears the chart along with the
+sampled points.
+
 If you'd like to check out the project and build locally:
 1. Check out repository
 2. Install JDK 25 LTS, then run `./build.sh` from the project root. Mill can download the pinned Java 25 toolchain.

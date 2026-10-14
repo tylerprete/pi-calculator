@@ -2,7 +2,7 @@ package pi
 
 import org.scalajs.dom
 import org.scalajs.dom.ImageData
-import org.scalajs.dom.html.{Button, Canvas, Form, Input}
+import org.scalajs.dom.html.{Button, Canvas, Form, Input, Select}
 
 import scala.compiletime.uninitialized
 import scala.scalajs.js
@@ -22,6 +22,7 @@ object PiCalculator {
   private var canvas: Canvas = uninitialized
   private var ctx: dom.CanvasRenderingContext2D = uninitialized
   private var canvasData: ImageData = uninitialized
+  private var convergenceChart: ConvergenceChart = uninitialized
 
   private def hasDom: Boolean =
     js.typeOf(js.Dynamic.global.document) != "undefined"
@@ -40,6 +41,13 @@ object PiCalculator {
     ctx = canvas.getContext("2d")
       .asInstanceOf[dom.CanvasRenderingContext2D]
     canvasData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+    convergenceChart = new ConvergenceChart(
+      dom.document.getElementById("convergence-chart").asInstanceOf[Canvas]
+    )
+    convergenceChart.reset()
+    val chartView = dom.document.getElementById("chart-view").asInstanceOf[Select]
+    chartView.onchange = (_: dom.Event) => convergenceChart.setRecentDetail(chartView.value == "recent", piState)
+    dom.window.addEventListener("resize", (_: dom.Event) => convergenceChart.render(piState))
   }
 
   @JSExport("App")
@@ -92,6 +100,7 @@ object PiCalculator {
     if (!ensureDom()) return
     AutoIncrementer.stopIncrementing()
     piState = PiState.initialPiState
+    convergenceChart.reset()
     renderPiState(piState)
     setupCanvas()
     canvasData = ctx.getImageData(0, 0, canvas.width, canvas.height)
@@ -116,9 +125,11 @@ object PiCalculator {
     if (!ensureDom()) return
     for (_ <- 0 until n) {
       piState = incrementPiState(canvasData: ImageData)
+      convergenceChart.record(piState)
     }
     ctx.putImageData(canvasData, 0, 0)
     renderPiState(piState)
+    convergenceChart.render(piState)
   }
 
   def drawPixel(imgData: ImageData, x: Int, y: Int, c: Color): Unit = {

@@ -17,18 +17,46 @@
           const canvas = doc.getElementById("piCanvas");
           const pixels = () => canvas.getContext("2d").getImageData(0, 0, 300, 300).data;
           const initialPixels = pixels();
+          const chart = doc.getElementById("convergence-chart");
+          const chartPixels = () => chart.getContext("2d").getImageData(0, 0, chart.width, chart.height).data;
+          const initialChartPixels = chartPixels();
+          const checkChart = () => {
+            const label = chart.getAttribute("aria-label");
+            check(label.includes(`after ${total()} samples`), "Chart should track the sample count");
+            check(label.includes(`Estimate ${doc.getElementById("pi").textContent}.`), "Chart should track the current estimate");
+            check(chartPixels().some((value, index) => value !== initialChartPixels[index]), "Chart should draw an estimate");
+          };
           check(total() === 0, "Initial count should be zero");
           click("next-pi");
           check(total() === 1, "Next should add one point");
+          checkChart();
           for (const step of [10, 100, 1000]) {
             doc.querySelector(`input[value="${step}"]`).click();
             const before = total();
             click("next-pi");
             check(total() === before + step, `Step ${step} should add ${step} points`);
+            checkChart();
           }
           for (let i = 0; i < 100; i++) click("next-pi");
           const estimate = Number(doc.getElementById("pi").textContent);
           check(Math.abs(estimate - Math.PI) < 0.1, "Estimate should converge toward pi");
+          checkChart();
+          const detailLabel = chart.getAttribute("aria-label");
+          const range = detailLabel.match(/Vertical axis from ([\d.]+) to ([\d.]+)\./);
+          check(range && Number(range[2]) - Number(range[1]) < 1, "Recent detail should zoom into late fluctuations");
+          const detailPixels = chartPixels();
+          const chartView = doc.getElementById("chart-view");
+          const setChartView = value => {
+            chartView.value = value;
+            chartView.dispatchEvent(new this.contentWindow.Event("change"));
+          };
+          const beforeViewChange = total();
+          setChartView("full");
+          check(chart.getAttribute("aria-label").includes("Full history. Vertical axis from 0 to 4."), "Full history should restore the 0–4 scale");
+          check(chartPixels().some((value, index) => value !== detailPixels[index]), "Changing view should redraw the chart");
+          setChartView("recent");
+          check(chartPixels().every((value, index) => value === detailPixels[index]), "Switching back should preserve chart history");
+          check(total() === beforeViewChange, "Changing chart view should preserve sample counts");
           check(doc.getElementById("total-points2").textContent === String(total()), "Counts should stay synchronized");
           check(doc.getElementById("in-circle").textContent === doc.getElementById("in-circle2").textContent, "Inside counts should stay synchronized");
           check(pixels().some((value, index) => value !== initialPixels[index]), "Points should appear on the canvas");
@@ -38,18 +66,24 @@
           click("stop-auto");
           const afterStop = total();
           check(afterStop > beforeAuto, "Auto Increment should add points");
+          checkChart();
+          const stoppedChartPixels = chartPixels();
           await delay(100);
           check(total() === afterStop, "Stop should halt incrementing");
+          check(chartPixels().every((value, index) => value === stoppedChartPixels[index]), "Stop should freeze the chart");
           click("auto-increment");
           await delay(60);
           click("reset");
           check(total() === 0, "Reset should clear the count");
           check(Number(doc.getElementById("in-circle").textContent) === 0, "Reset should clear the inside count");
           check(pixels().every((value, index) => value === initialPixels[index]), "Reset should restore the canvas");
+          check(chartPixels().every((value, index) => value === initialChartPixels[index]), "Reset should restore the empty chart");
+          check(chart.getAttribute("aria-label").includes("No samples yet"), "Reset should clear the chart description");
           await delay(100);
           check(total() === 0, "Reset should stop automatic incrementing");
           click("next-pi");
           check(total() === 1000, "Controls should still work after reset");
+          checkChart();
           result.textContent = "PASS: browser smoke test";
         } catch (error) {
           result.textContent = `FAIL: ${error.stack || error}`;
