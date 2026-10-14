@@ -114,8 +114,10 @@ object PiCalculator {
 
   def incrementNtimes(n: Int = 1): Unit = {
     if (!ensureDom()) return
-    for (_ <- 0 until n) {
+    var sampled = 0
+    while (sampled < n) {
       piState = incrementPiState(canvasData: ImageData)
+      sampled += 1
     }
     ctx.putImageData(canvasData, 0, 0)
     renderPiState(piState)
@@ -134,8 +136,8 @@ object PiCalculator {
     if (!ensureDom()) return piState
     val (newState, point, inCircle) = piState.next()
 
-    val scaledX = Math.round(point.x * (canvas.width / 2.0))
-    val scaledY = Math.round(point.y * (canvas.height / 2.0))
+    val scaledX = pixelCoordinate(point.x, canvas.width)
+    val scaledY = pixelCoordinate(point.y, canvas.height)
     //    println(s"scaledX: $scaledX -- scaledY: $scaledY")
 
     val c = if (inCircle) Color(green) else Color(red)
@@ -148,9 +150,14 @@ object PiCalculator {
     //    }
     //    ctx.fillStyle = "#000000"
     //    ctx.fillRect(scaledX, scaledY, 1, 1)
-    drawPixel(canvasData, scaledX.toInt, scaledY.toInt, c)
+    drawPixel(canvasData, scaledX, scaledY, c)
 
     newState
+  }
+
+  private[pi] def pixelCoordinate(coordinate: Double, size: Int): Int = {
+    // Samples span [0, 2), while pixel indices span [0, size).
+    math.floor(coordinate * (size / 2.0)).toInt
   }
 
   def renderPiState(piState: PiState): Unit = {

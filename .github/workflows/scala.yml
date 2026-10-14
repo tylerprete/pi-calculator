@@ -22,6 +22,8 @@ jobs:
         distribution: liberica
     - name: Build JS
       run: ./build.sh
+    - name: Pixel coordinate tests
+      run: ./millw --no-server pi.test
     - name: Browser smoke test
       run: bash ./test.sh
     - name: Pages deployment tests
