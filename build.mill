@@ -11,6 +11,12 @@ object pi extends ScalaJSModule {
   )
 
   object test extends ScalaJSTests, TestModule.Utest {
+    override def scalaJSTestDeps = Task {
+      // Mill 1.3.0 prepends a Scala 2.13 standard library from the test bridge.
+      // Use the app's Scala 3.10 standard library already on runClasspath.
+      super.scalaJSTestDeps().filterNot(_.path.last.startsWith("scalajs-scalalib_"))
+    }
+
     def mvnDeps = Seq(mvn"com.lihaoyi::utest::0.9.1")
   }
 }
