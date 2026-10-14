@@ -48,16 +48,16 @@ preview URLs become available after its publishing job completes.
 
 The workflows live in `.github/workflows/scala.yml` and
 `.github/workflows/pages.yml`. Deployment selection and site assembly live in
-`.github/scripts/pages.py`. The publisher validates artifacts before copying
+`.github/scripts/Pages.scala`. The publisher validates artifacts before copying
 them and rejects symlinks, hidden control files, missing `index.html`, and
 builds that use the reserved `previews/` directory. Asset paths must remain
 relative so the app also works under preview URLs.
 
-Run the deployment regression checks with Python 3; no extra packages are
-required:
+The publisher and its uTest regression suite are single-file Scala scripts,
+run through the repository's pinned Mill launcher. Run the checks with:
 
 ```bash
-python3 -m unittest discover -s tests -p test_pages.py
+./millw --no-server tests/PagesTests.scala
 ```
 
 These verify preview isolation, cleanup, stale-build selection, and artifact

@@ -19,10 +19,10 @@ inside its inscribed circle. There is no backend or frontend bundler.
 - `.github/workflows/scala.yml`: read-only CI build, browser smoke test,
   deployment regression tests, and `public` artifact upload.
 - `.github/workflows/pages.yml`: trusted production/PR publishing and cleanup.
-- `.github/scripts/pages.py`: current-build selection, artifact validation,
+- `.github/scripts/Pages.scala`: current-build selection, artifact validation,
   and assembly of the complete Pages tree.
-- `tests/test_pages.py`: deployment selection and production/preview isolation
-  regression checks using Python's standard library.
+- `tests/PagesTests.scala`: deployment selection and production/preview isolation
+  regression checks using Mill's Scala script support and uTest.
 
 ## Building
 
@@ -100,7 +100,7 @@ For shell changes, check syntax with `bash -n build.sh test.sh` or `sh -n millw`
 For changes to Pages publishing or preview behavior, run:
 
 ```bash
-python3 -m unittest discover -s tests -p test_pages.py
+./millw --no-server tests/PagesTests.scala
 ```
 
 These checks cover production/preview isolation, stale asset removal, cleanup,

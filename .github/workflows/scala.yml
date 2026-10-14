@@ -25,7 +25,7 @@ jobs:
     - name: Browser smoke test
       run: bash ./test.sh
     - name: Pages deployment tests
-      run: python3 -m unittest discover -s tests -p test_pages.py
+      run: ./millw --no-server tests/PagesTests.scala
     - name: Upload public folder
       if: success()
       uses: actions/upload-artifact@v7.0.2
