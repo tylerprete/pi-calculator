@@ -28,7 +28,8 @@ inside its inscribed circle. There is no backend or frontend bundler.
 
 Run commands from the repository root. The pinned versions are Scala 3.10.0,
 Scala.js 1.22.0, and Mill 1.3.0. The DOM dependency is `scalajs-dom` 2.8.1.
-Use JDK 21 or newer as documented in the README. Mill can download its own JDK
+Use JDK 25 LTS as documented in the README. The app and Scala scripts pin
+`jvmVersion` to 25. Mill can download its own JDK
 and dependencies, so the first build needs network access.
 
 ```bash
@@ -115,7 +116,7 @@ current documentation and lint a temporary copy without that key if needed.
 ## GitHub Actions and Pages
 
 `Scala CI` in `.github/workflows/scala.yml` runs on pushes to `master` and pull
-requests targeting `master`. It uses a read-only token, sets up Liberica JDK 21,
+requests targeting `master`. It uses a read-only token, sets up Liberica JDK 25 LTS,
 builds, runs the browser smoke test and Pages regression tests, and uploads
 `public/` as the `public` artifact. An empty artifact upload fails the build.
 
