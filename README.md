@@ -16,8 +16,19 @@ incrementing, stopping, and resetting. On Linux it uses `google-chrome`; on
 macOS it uses the standard Google Chrome application path. Set `CHROME_BIN`
 to use a different Chrome or Chromium executable.
 
-Note:
-I have this repository auto-wired to build with github actions and auto-deploy updates to the gh-pages branch, updating the site you see above. I'm pretty happy with how it turned out!
+## CI and deployment
+
+`Scala CI` runs for pushes to `master` and pull requests targeting `master`.
+It installs Liberica JDK 21, builds the optimized JavaScript bundle, runs the
+browser smoke test and deployment regression tests, and uploads `public/`.
+The build job uses a read-only token.
+
+After CI succeeds, `Publish Pages` downloads the build artifact and publishes
+to the existing `gh-pages` branch. Production updates replace the root site
+while preserving PR previews. The deployment is skipped if the build's commit
+is no longer the current `master` commit.
+
+## Pull request previews
 
 Successful pull request builds publish a preview at
 `https://tylerprete.github.io/pi-calculator/previews/pr-N/`, where `N` is the
@@ -25,14 +36,31 @@ PR number. The build and publishing workflow summaries include this URL.
 Each update replaces that PR's preview; closing or merging the PR removes it.
 Production deployments preserve the previews and previews preserve production.
 
-`Scala CI` builds and tests with a read-only token. `Publish Pages` runs from
-the trusted `master` branch after CI succeeds, downloads the static build
-artifact, and publishes it without executing PR code. This also supports fork
-PRs once their CI run is approved. Publishing skips outdated builds and closed
-PRs, and all deployments and cleanup run through one queue.
+The publisher uses trusted `master` code and treats PR artifacts as static
+files, without executing them. This also supports fork PRs once their CI run
+is approved. Publishing skips outdated PR builds and closed PRs, and all
+deployments and cleanup run through one queue to avoid conflicting writes.
 The publishing workflow must be merged into `master` before previews activate.
 GitHub Pages must continue to publish from the root of the `gh-pages` branch;
 preview URLs become available after its publishing job completes.
 
-Run `python3 -m unittest discover -s tests -p test_pages.py` to verify preview
-isolation, cleanup, stale-build selection, and artifact validation locally.
+## Deployment development
+
+The workflows live in `.github/workflows/scala.yml` and
+`.github/workflows/pages.yml`. Deployment selection and site assembly live in
+`.github/scripts/pages.py`. The publisher validates artifacts before copying
+them and rejects symlinks, hidden control files, missing `index.html`, and
+builds that use the reserved `previews/` directory. Asset paths must remain
+relative so the app also works under preview URLs.
+
+Run the deployment regression checks with Python 3; no extra packages are
+required:
+
+```bash
+python3 -m unittest discover -s tests -p test_pages.py
+```
+
+These verify preview isolation, cleanup, stale-build selection, and artifact
+validation. Use `actionlint` to check workflow changes and `git diff --check`
+to check whitespace. Actionlint 1.7.12 predates `concurrency.queue`; that key
+must be checked against current GitHub documentation separately.

@@ -16,6 +16,13 @@ inside its inscribed circle. There is no backend or frontend bundler.
 - `public/index.html`: canvas, controls, count displays, and bundle loading.
 - `public/css/main.css`: stylesheet (currently empty).
 - `tests/browser-smoke.html` and `test.sh`: browser integration checks.
+- `.github/workflows/scala.yml`: read-only CI build, browser smoke test,
+  deployment regression tests, and `public` artifact upload.
+- `.github/workflows/pages.yml`: trusted production/PR publishing and cleanup.
+- `.github/scripts/pages.py`: current-build selection, artifact validation,
+  and assembly of the complete Pages tree.
+- `tests/test_pages.py`: deployment selection and production/preview isolation
+  regression checks using Python's standard library.
 
 ## Building
 
@@ -90,9 +97,58 @@ For visual changes, also inspect the page in a browser. Check the canvas,
 controls, and displayed estimates. Use `git diff --check` before finishing.
 For shell changes, check syntax with `bash -n build.sh test.sh` or `sh -n millw`.
 
-CI in `.github/workflows/scala.yml` runs on pushes and pull requests targeting
-`master`. It sets up JDK 21, builds, runs the browser smoke test, uploads
-`public/`, and has a GitHub Pages deployment step publishing that directory.
+For changes to Pages publishing or preview behavior, run:
+
+```bash
+python3 -m unittest discover -s tests -p test_pages.py
+```
+
+These checks cover production/preview isolation, stale asset removal, cleanup,
+current-build selection, fork PR lookup, and rejection of unsafe artifacts.
+Workflow-only changes do not require rebuilding the Scala app unless they also
+change its build, controls, or rendering. Validate workflow YAML with
+`actionlint` when available. Actionlint 1.7.12 does not recognize GitHub's
+documented `concurrency.queue` property; verify `queue: max` against GitHub's
+current documentation and lint a temporary copy without that key if needed.
+
+## GitHub Actions and Pages
+
+`Scala CI` in `.github/workflows/scala.yml` runs on pushes to `master` and pull
+requests targeting `master`. It uses a read-only token, sets up Liberica JDK 21,
+builds, runs the browser smoke test and Pages regression tests, and uploads
+`public/` as the `public` artifact. An empty artifact upload fails the build.
+
+`Publish Pages` in `.github/workflows/pages.yml` handles successful `Scala CI`
+completions through `workflow_run`, and PR closure through `pull_request_target`.
+It checks out trusted `master` code and the existing `gh-pages` tree, never PR
+code. Its token has `contents: write`, `actions: read`, and `pull-requests: read`.
+The existing `gh-pages` branch is required, and GitHub Pages must publish from
+that branch's root.
+
+- Production updates replace root assets while preserving `previews/`.
+- PR builds replace only `previews/pr-N/`. The URL is
+  `https://tylerprete.github.io/pi-calculator/previews/pr-N/`.
+- Closing or merging a PR removes only its preview. Reopened PRs are not
+  cleaned up by a queued closure event.
+- Publishing skips outdated production commits, outdated PR heads, and closed
+  PRs. Fork runs with missing PR metadata are matched against current open PRs.
+- All publishing and cleanup share the `github-pages` concurrency group with
+  `queue: max` and `cancel-in-progress: false`.
+- Preview links appear in the build and publishing workflow summaries. The
+  link becomes live after GitHub Pages finishes publishing. Fork CI may first
+  need a maintainer's approval.
+
+The publisher must exist on `master` before these triggers activate. Treat PR
+artifacts as static data: never execute or import their contents in a workflow
+with write permissions. Preserve validation against symlinks, hidden control
+files, missing `index.html`, reserved `previews/`, and invalid PR destinations.
+Keep asset references relative so the app works inside preview subdirectories.
+
+Action releases currently used are `actions/checkout@v7.0.1`,
+`actions/setup-java@v6.0.1`, `actions/upload-artifact@v7.0.2`,
+`actions/download-artifact@v8.0.2`, and `peaceiris/actions-gh-pages@v4.1.0`.
+When updating them, verify current stable releases and compatible inputs and
+runtimes, then validate both workflows and run the deployment regression tests.
 
 ## Writing and changing the app
 
