@@ -2,7 +2,7 @@
 //| scalaVersion: 3.10.0
 //| jvmVersion: 21
 //| moduleDeps: [//.github/scripts/Pages.scala]
-//| mvnDeps: [com.lihaoyi::utest:0.9.1]
+//| mvnDeps: [com.lihaoyi::utest:0.9.5]
 package pages
 
 import java.nio.file.{Files, Path}

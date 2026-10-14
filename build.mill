@@ -10,6 +10,6 @@ object pi extends ScalaJSModule {
   )
 
   object test extends ScalaJSTests, TestModule.Utest {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest::0.9.1")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest::0.9.5")
   }
 }
