@@ -1,6 +1,6 @@
 //| extends: mill.script.ScalaModule.Utest
 //| scalaVersion: 3.10.0
-//| jvmVersion: 21
+//| jvmVersion: 25
 //| moduleDeps: [//.github/scripts/Pages.scala]
 //| mvnDeps: [com.lihaoyi::utest:0.9.1]
 package pages
