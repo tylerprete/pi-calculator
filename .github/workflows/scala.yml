@@ -11,7 +11,7 @@ jobs:
 
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
 
     steps:
     - uses: actions/checkout@v7.0.1
@@ -24,15 +24,18 @@ jobs:
       run: ./build.sh
     - name: Browser smoke test
       run: bash ./test.sh
+    - name: Pages deployment tests
+      run: python3 -m unittest discover -s tests -p test_pages.py
     - name: Upload public folder
       if: success()
       uses: actions/upload-artifact@v7.0.2
       with:
         name: public
         path: public
-    - name: Deploy
-      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-      uses: peaceiris/actions-gh-pages@v4.1.0
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./public
+        if-no-files-found: error
+    - name: Preview location
+      if: github.event_name == 'pull_request'
+      env:
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+      run: |
+        echo "After successful publishing, the preview will be at https://tylerprete.github.io/pi-calculator/previews/pr-$PR_NUMBER/" >> "$GITHUB_STEP_SUMMARY"

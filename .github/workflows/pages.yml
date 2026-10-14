@@ -1,0 +1,80 @@
+name: Publish Pages
+
+on:
+  workflow_run:
+    workflows: [Scala CI]
+    types: [completed]
+  pull_request_target:
+    branches: [master]
+    types: [closed]
+
+# Production, previews, and cleanup all modify the same branch.
+concurrency:
+  group: github-pages
+  queue: max
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: read
+  pull-requests: read
+
+jobs:
+  publish:
+    if: >-
+      github.event_name == 'pull_request_target' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       (github.event.workflow_run.event == 'push' ||
+        github.event.workflow_run.event == 'pull_request'))
+    runs-on: ubuntu-latest
+    steps:
+      # Always use trusted default-branch code, never the PR checkout.
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: master
+          persist-credentials: false
+      - name: Select current deployment
+        id: target
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 .github/scripts/pages.py select
+      - name: Download successful build
+        if: steps.target.outputs.mode == 'production' || steps.target.outputs.mode == 'preview'
+        uses: actions/download-artifact@v8.0.2
+        with:
+          name: public
+          path: built-public
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Read existing site
+        if: steps.target.outputs.mode != 'skip'
+        uses: actions/checkout@v7.0.1
+        with:
+          ref: gh-pages
+          path: existing-site
+          persist-credentials: false
+      - name: Prepare site
+        if: steps.target.outputs.mode != 'skip'
+        env:
+          MODE: ${{ steps.target.outputs.mode }}
+          PR_NUMBER: ${{ steps.target.outputs.number }}
+        run: python3 .github/scripts/pages.py prepare
+      - name: Publish site
+        if: steps.target.outputs.mode != 'skip'
+        uses: peaceiris/actions-gh-pages@v4.1.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./published-site
+      - name: Deployment summary
+        if: steps.target.outputs.mode != 'skip'
+        env:
+          MODE: ${{ steps.target.outputs.mode }}
+          PR_NUMBER: ${{ steps.target.outputs.number }}
+        run: |
+          if [[ "$MODE" == cleanup ]]; then
+            echo "Removed preview for PR #$PR_NUMBER." >> "$GITHUB_STEP_SUMMARY"
+          elif [[ "$MODE" == preview ]]; then
+            echo "Preview: https://tylerprete.github.io/pi-calculator/previews/pr-$PR_NUMBER/ (available after GitHub Pages finishes publishing)." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Production: https://tylerprete.github.io/pi-calculator/" >> "$GITHUB_STEP_SUMMARY"
+          fi

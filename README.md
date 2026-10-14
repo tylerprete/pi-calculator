@@ -18,3 +18,21 @@ to use a different Chrome or Chromium executable.
 
 Note:
 I have this repository auto-wired to build with github actions and auto-deploy updates to the gh-pages branch, updating the site you see above. I'm pretty happy with how it turned out!
+
+Successful pull request builds publish a preview at
+`https://tylerprete.github.io/pi-calculator/previews/pr-N/`, where `N` is the
+PR number. The build and publishing workflow summaries include this URL.
+Each update replaces that PR's preview; closing or merging the PR removes it.
+Production deployments preserve the previews and previews preserve production.
+
+`Scala CI` builds and tests with a read-only token. `Publish Pages` runs from
+the trusted `master` branch after CI succeeds, downloads the static build
+artifact, and publishes it without executing PR code. This also supports fork
+PRs once their CI run is approved. Publishing skips outdated builds and closed
+PRs, and all deployments and cleanup run through one queue.
+The publishing workflow must be merged into `master` before previews activate.
+GitHub Pages must continue to publish from the root of the `gh-pages` branch;
+preview URLs become available after its publishing job completes.
+
+Run `python3 -m unittest discover -s tests -p test_pages.py` to verify preview
+isolation, cleanup, stale-build selection, and artifact validation locally.
