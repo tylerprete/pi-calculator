@@ -114,10 +114,8 @@ object PiCalculator {
 
   def incrementNtimes(n: Int = 1): Unit = {
     if (!ensureDom()) return
-    var sampled = 0
-    while (sampled < n) {
+    for (_ <- 0 until n) {
       piState = incrementPiState(canvasData: ImageData)
-      sampled += 1
     }
     ctx.putImageData(canvasData, 0, 0)
     renderPiState(piState)
