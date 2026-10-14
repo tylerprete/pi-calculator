@@ -17,7 +17,7 @@ concurrency:
 permissions:
   contents: write
   actions: read
-  pull-requests: read
+  pull-requests: write
 
 jobs:
   publish:
@@ -83,3 +83,10 @@ jobs:
           else
             echo "Production: https://tylerprete.github.io/pi-calculator/" >> "$GITHUB_STEP_SUMMARY"
           fi
+      - name: Update PR preview link
+        if: steps.target.outputs.mode == 'preview' || steps.target.outputs.mode == 'cleanup'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MODE: ${{ steps.target.outputs.mode }}
+          PR_NUMBER: ${{ steps.target.outputs.number }}
+        run: bash .github/scripts/preview-comment.sh

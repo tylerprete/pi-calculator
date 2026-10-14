@@ -121,7 +121,10 @@ builds, runs the browser smoke test and Pages regression tests, and uploads
 `Publish Pages` in `.github/workflows/pages.yml` handles successful `Scala CI`
 completions through `workflow_run`, and PR closure through `pull_request_target`.
 It checks out trusted `master` code and the existing `gh-pages` tree, never PR
-code. Its token has `contents: write`, `actions: read`, and `pull-requests: read`.
+code. Its token has `contents: write`, `actions: read`, and `pull-requests: write`.
+Its `pull-requests: write` permission allows it to maintain a single marked bot
+comment linking to the preview on the PR's Conversation page. Cleanup updates
+that comment to say the preview was removed. CI remains read-only.
 The existing `gh-pages` branch is required, and GitHub Pages must publish from
 that branch's root.
 
