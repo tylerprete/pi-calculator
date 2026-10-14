@@ -33,6 +33,10 @@ is no longer the current `master` commit.
 Successful pull request builds publish a preview at
 `https://tylerprete.github.io/pi-calculator/previews/pr-N/`, where `N` is the
 PR number. The build and publishing workflow summaries include this URL.
+The publisher also adds a preview link to the PR's Conversation page in a
+single bot comment, updating it after each successful publish. Cleanup marks
+that comment as removed when the PR closes. The publisher has
+`pull-requests: write` permission for these comments; CI remains read-only.
 Each update replaces that PR's preview; closing or merging the PR removes it.
 Production deployments preserve the previews and previews preserve production.
 
