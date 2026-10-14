@@ -4,6 +4,8 @@ import org.scalajs.dom
 import org.scalajs.dom.ImageData
 import org.scalajs.dom.html.{Button, Canvas, Form, Input}
 
+import scala.compiletime.uninitialized
+import scala.scalajs.js
 import scala.scalajs.js.annotation.{JSExport, JSExportAll, JSExportTopLevel}
 import scala.scalajs.js.timers
 import scala.scalajs.js.timers.SetIntervalHandle
@@ -17,15 +19,38 @@ object PiCalculator {
 
   var piState = PiState.initialPiState
 
-  val canvas = dom.document.getElementById("piCanvas").asInstanceOf[Canvas]
+  private var canvas: Canvas = uninitialized
+  private var ctx: dom.CanvasRenderingContext2D = uninitialized
+  private var canvasData: ImageData = uninitialized
 
-  val ctx = canvas.getContext("2d")
-    .asInstanceOf[dom.CanvasRenderingContext2D]
+  private def hasDom: Boolean =
+    js.typeOf(js.Dynamic.global.document) != "undefined"
 
-  var canvasData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+  private def ensureDom(): Boolean = {
+    if (canvas == null || ctx == null) {
+      println("No DOM available. Run ./build.sh and open public/index.html in a browser.")
+      false
+    } else {
+      true
+    }
+  }
+
+  private def initDom(): Unit = {
+    canvas = dom.document.getElementById("piCanvas").asInstanceOf[Canvas]
+    ctx = canvas.getContext("2d")
+      .asInstanceOf[dom.CanvasRenderingContext2D]
+    canvasData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+  }
 
   @JSExport("App")
   def main(args: Array[String]): Unit = {
+    if (!hasDom) {
+      println("This app needs a browser DOM. Use ./build.sh and open public/index.html.")
+      return
+    }
+
+    initDom()
+
     //    dom.document.getElementById("scalajsShoutOut").textContent = SharedMessages.itWorks
     val button = dom.document.getElementById("next-pi").asInstanceOf[Button]
     val auto = dom.document.getElementById("auto-increment").asInstanceOf[Button]
@@ -63,7 +88,8 @@ object PiCalculator {
     canvasData = ctx.getImageData(0, 0, canvas.width, canvas.height)
   }
 
-  private def resetState() = {
+  private def resetState(): Unit = {
+    if (!ensureDom()) return
     AutoIncrementer.stopIncrementing()
     piState = PiState.initialPiState
     renderPiState(piState)
@@ -72,7 +98,8 @@ object PiCalculator {
     ctx.putImageData(canvasData, 0, 0)
   }
 
-  private def setupCanvas() = {
+  private def setupCanvas(): Unit = {
+    if (!ensureDom()) return
     /*setup*/
     val height = canvas.height
     val width = canvas.width
@@ -85,7 +112,8 @@ object PiCalculator {
     ctx.stroke()
   }
 
-  def incrementNtimes(n: Int = 1) = {
+  def incrementNtimes(n: Int = 1): Unit = {
+    if (!ensureDom()) return
     for (_ <- 0 until n) {
       piState = incrementPiState(canvasData: ImageData)
     }
@@ -93,7 +121,8 @@ object PiCalculator {
     renderPiState(piState)
   }
 
-  def drawPixel(imgData: ImageData, x: Int, y: Int, c: Color) = {
+  def drawPixel(imgData: ImageData, x: Int, y: Int, c: Color): Unit = {
+    if (!ensureDom()) return
     val index = (x + y * canvas.width) * 4
     imgData.data(index + 0) = c.r
     imgData.data(index + 1) = c.g
@@ -102,6 +131,7 @@ object PiCalculator {
   }
 
   def incrementPiState(canvasData: ImageData): PiState = {
+    if (!ensureDom()) return piState
     val (newState, point, inCircle) = piState.next()
 
     val scaledX = Math.round(point.x * (canvas.width / 2.0))
@@ -124,6 +154,7 @@ object PiCalculator {
   }
 
   def renderPiState(piState: PiState): Unit = {
+    if (!ensureDom()) return
     dom.document.getElementById("total-points").textContent = piState.totalPoints.toString
     dom.document.getElementById("total-points2").textContent = piState.totalPoints.toString
     dom.document.getElementById("in-circle").textContent = piState.pointsInCircle.toString

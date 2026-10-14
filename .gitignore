@@ -3,3 +3,6 @@
 
 # Mill output
 out/
+
+# Generated Scala.js bundle
+/public/js/app.js

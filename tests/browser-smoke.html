@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <pre id="result">RUNNING</pre>
+    <iframe id="app" src="../public/index.html"></iframe>
+    <script>
+      const result = document.getElementById("result");
+      const check = (condition, message) => {
+        if (!condition) throw new Error(message);
+      };
+      const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+      document.getElementById("app").onload = async function () {
+        try {
+          const doc = this.contentDocument;
+          const click = id => doc.getElementById(id).click();
+          const total = () => Number(doc.getElementById("total-points").textContent);
+          const canvas = doc.getElementById("piCanvas");
+          const pixels = () => canvas.getContext("2d").getImageData(0, 0, 300, 300).data;
+          const initialPixels = pixels();
+          check(total() === 0, "Initial count should be zero");
+          click("next-pi");
+          check(total() === 1, "Next should add one point");
+          for (const step of [10, 100, 1000]) {
+            doc.querySelector(`input[value="${step}"]`).click();
+            const before = total();
+            click("next-pi");
+            check(total() === before + step, `Step ${step} should add ${step} points`);
+          }
+          for (let i = 0; i < 100; i++) click("next-pi");
+          const estimate = Number(doc.getElementById("pi").textContent);
+          check(Math.abs(estimate - Math.PI) < 0.1, "Estimate should converge toward pi");
+          check(doc.getElementById("total-points2").textContent === String(total()), "Counts should stay synchronized");
+          check(doc.getElementById("in-circle").textContent === doc.getElementById("in-circle2").textContent, "Inside counts should stay synchronized");
+          check(pixels().some((value, index) => value !== initialPixels[index]), "Points should appear on the canvas");
+          const beforeAuto = total();
+          click("auto-increment");
+          await delay(100);
+          click("stop-auto");
+          const afterStop = total();
+          check(afterStop > beforeAuto, "Auto Increment should add points");
+          await delay(100);
+          check(total() === afterStop, "Stop should halt incrementing");
+          click("auto-increment");
+          await delay(60);
+          click("reset");
+          check(total() === 0, "Reset should clear the count");
+          check(Number(doc.getElementById("in-circle").textContent) === 0, "Reset should clear the inside count");
+          check(pixels().every((value, index) => value === initialPixels[index]), "Reset should restore the canvas");
+          await delay(100);
+          check(total() === 0, "Reset should stop automatic incrementing");
+          click("next-pi");
+          check(total() === 1000, "Controls should still work after reset");
+          result.textContent = "PASS: browser smoke test";
+        } catch (error) {
+          result.textContent = `FAIL: ${error.stack || error}`;
+        }
+      };
+    </script>
+  </body>
+</html>
