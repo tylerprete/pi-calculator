@@ -20,6 +20,8 @@ jobs:
         distribution: liberica
     - name: Build JS
       run: ./build.sh
+    - name: Browser smoke test
+      run: bash ./test.sh
     - name: Upload public folder
       if: success()
       uses: actions/upload-artifact@v4
